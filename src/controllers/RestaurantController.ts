@@ -3,6 +3,7 @@ import {v2 as cloudinary} from 'cloudinary'
 import {Request,Response} from 'express';
 import mongoose from "mongoose";
 import User from "../models/User";
+import PendingRestaurant from "../models/PendingRestaurant";
 
 
 const getRestaurant=async(req:Request,res:Response)=>{
@@ -39,7 +40,6 @@ try {
 
         const imageUrl=await uploadImage(req.file as Express.Multer.File);
 
-        
         const restaurant=new Restaurant(req.body);
 
         restaurant.imageUrl=imageUrl;
@@ -102,6 +102,42 @@ const updateRestaurant= async(req:Request,res:Response)=>{
 
 }
 
+const approveRestaurant=async(req:Request,res:Response)=>{
+   try {
+
+    if (!req.file) {
+        return res.status(400).json({ message: 'File is required' });
+    }
+ 
+    const existingRestaurant=await Restaurant.findOne({user:req.userId});
+    if(existingRestaurant)
+        {
+            return res.status(409).json({message:"Restaurant already exists"});
+        }
+const existingPending=await PendingRestaurant.findOne({
+    user:req.userId,
+    status:"pending"
+});
+if(existingPending)
+{return res.status(409).json({message:"Restaurant request already created"})}
+
+        const imageUrl=await uploadImage(req.file as Express.Multer.File);
+
+        const pendingRestaurant=new PendingRestaurant({
+            ...req.body,
+            imageUrl,
+            user:req.userId
+        });
+        await pendingRestaurant.save();
+            return res.status(202).json({ message: "Restaurant submitted for approval" });
+
+} catch (error) {
+    return res.status(400).json({
+     error,
+        message:"problem creating Restaurant"
+    })
+}
+}
 
 const uploadImage = async (file: Express.Multer.File) => {
     try {
@@ -122,5 +158,6 @@ const uploadImage = async (file: Express.Multer.File) => {
 export {
     createRestaurant,
     getRestaurant,
-    updateRestaurant
+    updateRestaurant,
+    approveRestaurant
 }

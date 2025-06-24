@@ -1,7 +1,8 @@
 import express from 'express';
 import multer from 'multer'
-import {createRestaurant,getRestaurant,updateRestaurant} from '../controllers/RestaurantController'
+import {approveRestaurant, createRestaurant,getRestaurant,updateRestaurant} from '../controllers/RestaurantController'
 import { jwtCheck, jwtParse } from '../middleware/auth';
+import { getRestStatus } from '../controllers/PendingRestController';
 
 const router=express.Router();
 
@@ -16,11 +17,11 @@ const upload=multer({
 })
 
 router.get('/',jwtCheck,jwtParse,getRestaurant)
+router.get('/status',jwtCheck,jwtParse,getRestStatus)
+router.post('/approve',upload.single('imageFile'),jwtCheck,jwtParse,approveRestaurant)
 router.post('/',upload.single('imageFile'),jwtCheck,jwtParse,createRestaurant);
-router.put('/',upload.fields([
-    { name: 'imageFile', maxCount: 1 }, // for restaurant image
-    { name: 'menuItemsImages', maxCount: 20 }, // for menu item images
-  ]),jwtCheck,jwtParse,updateRestaurant);
+router.post('/approve',upload.single('imageFile'),jwtCheck,jwtParse,createRestaurant);
+router.put('/',upload.single('imageFile'),jwtCheck,jwtParse,updateRestaurant);
 
 
 export default router;

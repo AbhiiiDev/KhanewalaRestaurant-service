@@ -60,3 +60,9 @@ next();
     return res.sendStatus(401);
 }
 }
+
+export const isAdmin=async(req:Request,res:Response,next:NextFunction)=>{
+if(req.userId !== 'admin')
+  return res.status(403).json({message:"Unauthorized access"});
+next();
+}
