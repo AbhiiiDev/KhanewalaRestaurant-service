@@ -24,34 +24,30 @@ const getRestaurant=async(req:Request,res:Response)=>{
 
 
 
-const createRestaurant=async(req:Request,res:Response)=>{
+
+const approveRestaurant=async(req:Request,res:Response)=>{
 
 try {
-
-    if (!req.file) {
-        return res.status(400).json({ message: 'File is required' });
-    }
+const {id}=req.params;
+   const pending=await PendingRestaurant.findById(id);
+   if(!pending || pending.isApproved!=='pending')
+    return res.status(404).json({message:"No Restaurant Request found"});
  
-    const existingRestaurant=await Restaurant.findOne({user:req.userId});
-    if(existingRestaurant)
-        {
-            return res.status(409).json({message:"Restaurant already exists"});
-        }
 
-        const imageUrl=await uploadImage(req.file as Express.Multer.File);
+    const restaurant=new Restaurant({
+...pending.toObject(),
+user:pending.user,
+lastUpdated:new Date()
+    })
 
-        const restaurant=new Restaurant(req.body);
-
-        restaurant.imageUrl=imageUrl;
-        restaurant.user= new mongoose.Types.ObjectId(req.userId);
-        restaurant.lastUpdated=new Date();
-
-        await restaurant.save();
-  const user=await User.findById(req.userId);
-        if(!user) return;
-        user.role="restaurant";
-        await user.save();
-        res.status(201).send(restaurant);
+    await restaurant.save();
+  const user=await User.findById(pending.user);
+        if(user) 
+      {  user.role="restaurant";
+        await user.save();}
+        pending.isApproved="approved";
+        await pending.save();
+        res.status(200).json({message:"Restaurant Approved",restaurant})
 
 } catch (error) {
     return res.status(400).json({
@@ -102,18 +98,18 @@ const updateRestaurant= async(req:Request,res:Response)=>{
 
 }
 
-const approveRestaurant=async(req:Request,res:Response)=>{
+const getApprovalRestaurant=async(req:Request,res:Response)=>{
    try {
 
     if (!req.file) {
         return res.status(400).json({ message: 'File is required' });
     }
  
-    const existingRestaurant=await Restaurant.findOne({user:req.userId});
-    if(existingRestaurant)
-        {
-            return res.status(409).json({message:"Restaurant already exists"});
-        }
+    // const existingRestaurant=await Restaurant.findOne({user:req.userId});
+    // if(existingRestaurant)
+    //     {
+    //         return res.status(409).json({message:"Restaurant already exists"});
+    //     }
 const existingPending=await PendingRestaurant.findOne({
     user:req.userId,
     status:"pending"
@@ -156,8 +152,8 @@ const uploadImage = async (file: Express.Multer.File) => {
   };
 
 export {
-    createRestaurant,
+    approveRestaurant,
     getRestaurant,
     updateRestaurant,
-    approveRestaurant
+    getApprovalRestaurant
 }

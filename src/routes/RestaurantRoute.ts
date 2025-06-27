@@ -1,8 +1,8 @@
 import express from 'express';
 import multer from 'multer'
-import {approveRestaurant, createRestaurant,getRestaurant,updateRestaurant} from '../controllers/RestaurantController'
-import { jwtCheck, jwtParse } from '../middleware/auth';
-import { getRestStatus } from '../controllers/PendingRestController';
+import {getApprovalRestaurant,getRestaurant,updateRestaurant, approveRestaurant} from '../controllers/RestaurantController'
+import { isAdmin, jwtCheck, jwtParse } from '../middleware/auth';
+import { getRestStatus ,getPendingRestaurant} from '../controllers/PendingRestController';
 
 const router=express.Router();
 
@@ -17,10 +17,11 @@ const upload=multer({
 })
 
 router.get('/',jwtCheck,jwtParse,getRestaurant)
+router.get('/pending',jwtCheck,jwtParse,getPendingRestaurant)
 router.get('/status',jwtCheck,jwtParse,getRestStatus)
-router.post('/approve',upload.single('imageFile'),jwtCheck,jwtParse,approveRestaurant)
-router.post('/',upload.single('imageFile'),jwtCheck,jwtParse,createRestaurant);
-router.post('/approve',upload.single('imageFile'),jwtCheck,jwtParse,createRestaurant);
+router.post('/approval',upload.single('imageFile'),jwtCheck,jwtParse,getApprovalRestaurant)
+// router.post('/',upload.single('imageFile'),jwtCheck,jwtParse,createRestaurant);
+router.post('/approve/:id',upload.single('imageFile'),jwtCheck,jwtParse,isAdmin,approveRestaurant);
 router.put('/',upload.single('imageFile'),jwtCheck,jwtParse,updateRestaurant);
 
 

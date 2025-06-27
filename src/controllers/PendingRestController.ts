@@ -1,6 +1,25 @@
 import { Request, Response } from "express";
 import PendingRestaurant from "../models/PendingRestaurant";
-
+import "../models/User"
+const getPendingRestaurant=async(req:Request,res:Response)=>{
+    try {
+        console.log('before finding rest')
+        const pending=await PendingRestaurant.findOne({
+            user:req.userId,
+            isApproved:"pending"
+        }).populate('user','name');
+        console.log('after finding rest')
+        console.log(pending)
+        if(!pending)
+        {
+            return res.status(404).json({message:'Restaurant not found'})
+        }
+      
+        res.json(pending);
+    } catch (error) {
+        res.status(400).json({message:'Error while finding pending restaruant'})
+    }
+}
 const getAllPending=async(req:Request,res:Response)=>{
 try {
     const pendingRestaurants=await PendingRestaurant.find({
@@ -28,4 +47,4 @@ try {
 }
 }
 
-export { getAllPending,getRestStatus}
+export { getAllPending,getRestStatus,getPendingRestaurant}
