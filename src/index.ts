@@ -21,9 +21,9 @@ cloudinary.config({
   api_secret: process.env.CLOUD_API_SECRET,
 });
 
-app.use("/api/v1/restaurant", RestaurantRoute);
+app.use("/restaurant", RestaurantRoute);
 app.use(express.json({ limit: "50MB" }));
-app.use("/api/restaurant", RestaurantSearchRoute);
+app.use("/restaurant", RestaurantSearchRoute);
 
 app.listen(8002,()=>{
     console.log('server connected to port : 8002');
